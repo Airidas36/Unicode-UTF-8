@@ -1,0 +1,107 @@
+#include <iostream>
+#include <iomanip>
+#include <sstream>
+#include <stdio.h>
+#include <string.h>
+#include <string>
+#include <bitset>
+using namespace std;
+void decToHexa(int n, char hex[], string& x);
+void determinte_bytes(unsigned char bytes, string x);
+string bitwork(int bytes, string unicode);
+
+int main()
+{
+	int number;
+	char hex[100];
+	string abc ="";
+	cin >> number;
+	cout << "UNICODE: U+";
+	decToHexa(number,hex,abc);
+	unsigned char byte1 = NULL;
+	byte1 = (char)(number);
+	determinte_bytes(byte1, abc);
+	cout << (char)(number) << endl;
+	return 0;
+}
+
+void decToHexa(int n, char hex[], string &x)
+{
+	int i = 1,temp;
+	while (n != 0)
+	{
+		temp = n % 16;
+		if (temp < 10)
+			temp = temp + 48;
+		else
+			temp = temp + 55;
+		hex[i++] = temp;
+		n = n / 16;
+	}
+	if (i == 2)
+		cout << "000";
+	else if (i == 3)
+		cout << "00";
+	else if (i == 4)
+		cout << "0";
+	int k = 0;
+	for (int j = i - 1; j > 0; j--)
+	{
+		cout << hex[j];
+		x += hex[j];
+	}
+	cout << endl;
+}
+
+string bitwork(int bytes, string unicode)
+{
+	string base;
+	cout << "Koduojama " << bytes << " baitais.\n";
+	if(bytes == 1)
+		base = "0xxxxxxx";
+	else if (bytes == 2)
+		base = "110xxxxx10xxxxxx";
+	else if (bytes == 3)
+		base = "1110xxxx10xxxxxx10xxxxxx";
+	else base = "11110xxx10xxxxxx10xxxxxx10xxxxxx";
+	int size = base.length();
+	int len = unicode.length()-1;
+	for (int i = size - 1; i >= 0; i--)
+	{
+		if(base[i] == 'x')
+			base[i] = unicode[len--];
+	}
+	return base;
+}
+
+void determinte_bytes(unsigned char bytes, string x)
+{
+	const char* hexstring = x.c_str();
+	int utf8;
+	int number = (int)strtol(hexstring, NULL, 16);
+	if (number >= 0x0000 && number <= 0x007f)
+	{
+		string unicode = bitset<8>(number).to_string();
+		utf8 = bitset<8>(bitwork(1, unicode)).to_ulong();
+		cout << "UTF-8: " << hex << uppercase << utf8 << dec;
+	}
+	else if (number >= 0x0080 && number <= 0x07ff)
+	{
+		string unicode = bitset<16>(number).to_string();
+		utf8 = bitset<16>(bitwork(2, unicode)).to_ulong();
+		cout << "UTF-8: " << hex << uppercase << utf8 << dec;
+	}	
+	else if (number >= 0x0800 && number <= 0xffff)
+	{	
+		string unicode = bitset<24>(number).to_string();
+		utf8 = bitset<24>(bitwork(3, unicode)).to_ulong();
+		cout << "UTF-8: " << hex << uppercase << utf8 << dec;
+	}
+	else if (number >= 0x1000 && number <= 0x10ffff)
+	{
+		string unicode = bitset<32>(number).to_string();
+		utf8 = bitset<32>(bitwork(4, unicode)).to_ulong();
+		cout << "UTF-8: " << hex << uppercase << utf8 << dec;
+	}
+	cout << endl;
+}
